@@ -13,15 +13,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const user = userRes.user;
 
   const body = await req.json();
-  const { title, created_at } = body as { title?: string; created_at?: string };
+  const { title, created_at, rating } = body as { title?: string; created_at?: string; rating?: string };
 
-  if (!title && !created_at) {
+  if (!title && !created_at && !rating) {
     return NextResponse.json({ error: 'Missing fields to update' }, { status: 400 });
   }
 
-  const fieldsToUpdate: { title?: string; created_at?: string } = {};
+  const fieldsToUpdate: { title?: string; created_at?: string; rating?: string } = {};
   if (title) fieldsToUpdate.title = title;
   if (created_at) fieldsToUpdate.created_at = created_at;
+  if (rating) fieldsToUpdate.rating = rating;
 
   const { data, error } = await supabase
     .from('recipes')

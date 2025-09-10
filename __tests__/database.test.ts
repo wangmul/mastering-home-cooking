@@ -12,7 +12,7 @@ describe('Database Integration Tests', () => {
   // A dummy user ID for testing. In a real scenario, you would use a test user.
   const testUserId = '00000000-0000-0000-0000-000000000000';
 
-  it('should insert a new recipe', async () => {
+  it('should insert a new recipe with a rating', async () => {
     const { data, error } = await supabase
       .from('recipes')
       .insert({
@@ -20,6 +20,7 @@ describe('Database Integration Tests', () => {
         week: currentWeek,
         title: testRecipeTitle,
         notes: 'This is a test recipe.',
+        rating: '대박',
       })
       .select()
       .single();
@@ -27,6 +28,7 @@ describe('Database Integration Tests', () => {
     expect(error).toBeNull();
     expect(data).toBeDefined();
     expect(data.title).toBe(testRecipeTitle);
+    expect(data.rating).toBe('대박');
     testRecipeId = data.id;
   });
 

@@ -2,13 +2,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
-type Recipe = { id: string; title: string; notes: string | null; photo_url: string | null; created_at: string };
+type Recipe = { id: string; title: string; notes: string | null; photo_url: string | null; created_at: string; rating: string | null };
 type Summary = {
   currentWeek: number;
   week: any;
   nextWeek: any;
   recipes: Recipe[];
   completed: boolean;
+};
+
+const ratings = ['대박', '먹을만', '망했음'];
+const ratingColors: { [key: string]: string } = {
+  '대박': '#28a745',
+  '먹을만': '#ffc107',
+  '망했음': '#dc3545',
 };
 
 export default function PlanPage() {
@@ -23,6 +30,7 @@ export default function PlanPage() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [editText, setEditText] = useState('');
   const [editDate, setEditDate] = useState('');
+  const [editRating, setEditRating] = useState<string | null>(null);
 
   const fetchSummary = useCallback(() => {
     setLoading(true);
@@ -45,7 +53,6 @@ export default function PlanPage() {
     if (token) {
       fetchSummary();
     } else {
-      // If there's no token, we are not loading anything.
       setLoading(false);
     }
   }, [token, fetchSummary]);
@@ -79,6 +86,7 @@ export default function PlanPage() {
     setEditingRecipe(recipe);
     setEditText(recipe.title);
     setEditDate(recipe.created_at.substring(0, 10));
+    setEditRating(recipe.rating);
   }
 
   async function handleUpdateRecipe() {
@@ -87,6 +95,7 @@ export default function PlanPage() {
     const payload = {
       title: editText,
       created_at: new Date(editDate).toISOString(),
+      rating: editRating,
     };
 
     const res = await fetch(`/api/plan/recipes/${editingRecipe.id}`,
@@ -137,6 +146,17 @@ export default function PlanPage() {
                 <div className="mb-3">
                   <label htmlFor="editDate" className="form-label">작성일</label>
                   <input type="date" id="editDate" className="form-control" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">평가</label>
+                  <div>
+                    {ratings.map(r => (
+                      <div className="form-check form-check-inline" key={r}>
+                        <input className="form-check-input" type="radio" name="editRating" id={`edit-rating-${r}`} value={r} checked={editRating === r} onChange={() => setEditRating(r)} />
+                        <label className="form-check-label" htmlFor={`edit-rating-${r}`}>{r}</label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="modal-footer">
@@ -227,6 +247,7 @@ export default function PlanPage() {
                     const payload = {
                       title: (fd.get('recipe') as string) || '',
                       photo_url: (fd.get('photo_url') as string) || null,
+                      rating: (fd.get('rating') as string) || null,
                     };
                     if (!payload.title) { setToast('레시피 내용을 입력해주세요'); return; }
                     setAdding(true);
@@ -253,7 +274,17 @@ export default function PlanPage() {
                       <label htmlFor="photo_url" className="form-label">사진 URL</label>
                       <input type="url" id="photo_url" name="photo_url" className="form-control" placeholder="https://..." />
                     </div>
-                    {/* TODO: Add file upload UI */}
+                    <div className="mb-3">
+                      <label className="form-label">평가</label>
+                      <div>
+                        {ratings.map(r => (
+                          <div className="form-check form-check-inline" key={r}>
+                            <input className="form-check-input" type="radio" name="rating" id={`rating-${r}`} value={r} />
+                            <label className="form-check-label" htmlFor={`rating-${r}`}>{r}</label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     <button type="submit" className="btn btn-primary" disabled={adding}>
                       {adding ? '추가 중...' : '레시피 추가'}
                     </button>
@@ -268,6 +299,7 @@ export default function PlanPage() {
                     <div className="card h-100">
                       {r.photo_url && <img src={r.photo_url} className="card-img-top" alt={r.title} style={{ height: '200px', objectFit: 'cover' }}/>}
                       <div className="card-body">
+                        {r.rating && <span className="badge mb-2" style={{ backgroundColor: ratingColors[r.rating] }}>{r.rating}</span>}
                         <p className="card-text" style={{ whiteSpace: 'pre-wrap' }}>{r.title}</p>
                       </div>
                       <div className="card-footer d-flex justify-content-between align-items-center">
