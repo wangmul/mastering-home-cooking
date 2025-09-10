@@ -38,8 +38,8 @@ describe('PlanPage', () => {
     // Wait for the component to finish loading and rendering
     await waitFor(() => screen.getByText('My test recipe'));
 
-    expect(screen.getByText('대박')).toBeInTheDocument();
-    const badge = screen.getByText('대박');
+    expect(screen.getByText('대박', { selector: 'span.badge' })).toBeInTheDocument();
+    const badge = screen.getByText('대박', { selector: 'span.badge' });
     expect(badge).toHaveStyle('background-color: #28a745'); // Check for '대박' color
   });
 
@@ -66,7 +66,7 @@ describe('PlanPage', () => {
     // Check if modal with rating is visible
     await waitFor(() => screen.getByText('레시피 수정'));
 
-    const greatRadio = screen.getByLabelText('대박') as HTMLInputElement;
+    const greatRadio = screen.getByRole('radio', { name: '대박', selector: '[name="editRating"]', checked: true }) as HTMLInputElement;
     expect(greatRadio.checked).toBe(true);
   });
 });
