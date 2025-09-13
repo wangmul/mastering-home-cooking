@@ -18,6 +18,12 @@ const ratingColors: { [key: string]: string } = {
   '망했음': '#dc3545',
 };
 
+const ratingIcons: { [key: string]: string } = {
+  '대박': 'bi-hand-thumbs-up-fill',
+  '먹을만': 'bi-emoji-neutral-fill',
+  '망했음': 'bi-hand-thumbs-down-fill',
+};
+
 export default function PlanPage() {
   const supabase = createSupabaseBrowserClient();
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -32,6 +38,7 @@ export default function PlanPage() {
   const [editDate, setEditDate] = useState('');
   const [editRating, setEditRating] = useState<string | null>(null);
   const [showAddRecipeForm, setShowAddRecipeForm] = useState(false);
+  const [newRating, setNewRating] = useState<string | null>(null);
 
   const fetchSummary = useCallback(() => {
     setLoading(true);
@@ -153,8 +160,21 @@ export default function PlanPage() {
                   <div className="d-flex align-items-center">
                     {ratings.map(r => (
                       <div className="form-check form-check-inline me-3" key={r}>
-                        <input className="form-check-input" type="radio" name="editRating" id={`edit-rating-${r}`} value={r} checked={editRating === r} onChange={() => setEditRating(r)} />
-                        <label className="form-check-label" htmlFor={`edit-rating-${r}`}>{r}</label>
+                        <input
+                          className="form-check-input d-none"
+                          type="radio"
+                          name="editRating"
+                          id={`edit-rating-${r}`}
+                          value={r}
+                          checked={editRating === r}
+                          onChange={() => setEditRating(r)}
+                        />
+                        <label className="form-check-label" htmlFor={`edit-rating-${r}`} style={{ cursor: 'pointer' }}>
+                          <i
+                            className={`bi ${ratingIcons[r]}`}
+                            style={{ fontSize: '1.5rem', color: editRating === r ? ratingColors[r] : '#6c757d' }}
+                          ></i>
+                        </label>
                       </div>
                     ))}
                   </div>
@@ -274,6 +294,7 @@ export default function PlanPage() {
                     }
                     form.reset();
                     setShowAddRecipeForm(false);
+                    setNewRating(null);
                     setToast('레시피가 추가되었습니다!');
                     fetchSummary(); // Refetch data
                   }}>
@@ -290,8 +311,21 @@ export default function PlanPage() {
                       <div className="d-flex align-items-center">
                         {ratings.map(r => (
                           <div className="form-check form-check-inline me-3" key={r}>
-                            <input className="form-check-input" type="radio" name="rating" id={`rating-${r}`} value={r} />
-                            <label className="form-check-label" htmlFor={`rating-${r}`}>{r}</label>
+                            <input
+                              className="form-check-input d-none"
+                              type="radio"
+                              name="rating"
+                              id={`rating-${r}`}
+                              value={r}
+                              onChange={() => setNewRating(r)}
+                              checked={newRating === r}
+                            />
+                            <label className="form-check-label" htmlFor={`rating-${r}`} style={{ cursor: 'pointer' }}>
+                              <i
+                                className={`bi ${ratingIcons[r]}`}
+                                style={{ fontSize: '1.5rem', color: newRating === r ? ratingColors[r] : '#6c757d' }}
+                              ></i>
+                            </label>
                           </div>
                         ))}
                       </div>
