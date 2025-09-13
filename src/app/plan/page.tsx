@@ -31,6 +31,7 @@ export default function PlanPage() {
   const [editText, setEditText] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editRating, setEditRating] = useState<string | null>(null);
+  const [showAddRecipeForm, setShowAddRecipeForm] = useState(false);
 
   const fetchSummary = useCallback(() => {
     setLoading(true);
@@ -149,9 +150,9 @@ export default function PlanPage() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label">평가</label>
-                  <div>
+                  <div className="d-flex align-items-center">
                     {ratings.map(r => (
-                      <div className="form-check form-check-inline" key={r}>
+                      <div className="form-check form-check-inline me-3" key={r}>
                         <input className="form-check-input" type="radio" name="editRating" id={`edit-rating-${r}`} value={r} checked={editRating === r} onChange={() => setEditRating(r)} />
                         <label className="form-check-label" htmlFor={`edit-rating-${r}`}>{r}</label>
                       </div>
@@ -229,7 +230,15 @@ export default function PlanPage() {
         {/* My Recipes Section */}
         <div className="col-lg-12">
           <hr className="my-4" />
-          <h2>나의 레시피</h2>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2 className="mb-0">나의 레시피</h2>
+            {token && (
+              <button className="btn btn-outline-primary" onClick={() => setShowAddRecipeForm(!showAddRecipeForm)}>
+                <i className={`bi ${showAddRecipeForm ? 'bi-x-lg' : 'bi-plus-lg'} me-1`}></i>
+                {showAddRecipeForm ? '취소' : '새 레시피'}
+              </button>
+            )}
+          </div>
           {!token ? (
             <div className="alert alert-info">
               레시피를 추가하고 관리하려면 <a href="/login" className="alert-link">로그인</a>하세요.
@@ -237,6 +246,7 @@ export default function PlanPage() {
           ) : (
             <>
               {/* Add Recipe Form */}
+              {showAddRecipeForm && (
               <div className="card mb-4">
                 <div className="card-body">
                   <h5 className="card-title">새 레시피 추가</h5>
@@ -263,6 +273,7 @@ export default function PlanPage() {
                       return;
                     }
                     form.reset();
+                    setShowAddRecipeForm(false);
                     setToast('레시피가 추가되었습니다!');
                     fetchSummary(); // Refetch data
                   }}>
@@ -276,21 +287,25 @@ export default function PlanPage() {
                     </div>
                     <div className="mb-3">
                       <label className="form-label">평가</label>
-                      <div>
+                      <div className="d-flex align-items-center">
                         {ratings.map(r => (
-                          <div className="form-check form-check-inline" key={r}>
+                          <div className="form-check form-check-inline me-3" key={r}>
                             <input className="form-check-input" type="radio" name="rating" id={`rating-${r}`} value={r} />
                             <label className="form-check-label" htmlFor={`rating-${r}`}>{r}</label>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <button type="submit" className="btn btn-primary" disabled={adding}>
-                      {adding ? '추가 중...' : '레시피 추가'}
-                    </button>
+                    <div className="d-flex justify-content-end">
+                      <button type="button" className="btn btn-secondary me-2" onClick={() => setShowAddRecipeForm(false)}>취소</button>
+                      <button type="submit" className="btn btn-primary" disabled={adding}>
+                        {adding ? '추가 중...' : '레시피 추가'}
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
+              )}
 
               {/* Recipe List */}
               <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
