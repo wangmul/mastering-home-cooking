@@ -1,67 +1,83 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import HomePage from '@/app/page';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { render, screen, waitFor } from '@testing-library/react';
+import HomePage from '../src/app/page';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
-// Mock the Supabase client
-jest.mock('@/lib/supabase-server', () => ({
-  createSupabaseServerClient: jest.fn(),
+// Mock dependencies
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: jest.fn(),
+  }),
 }));
+jest.mock('@/lib/supabase-browser');
 
-const mockSupabase = createSupabaseServerClient as jest.Mock;
+const mockCreateSupabaseBrowserClient = createSupabaseBrowserClient as jest.Mock;
+global.fetch = jest.fn();
+const mockFetch = global.fetch as jest.Mock;
 
 describe('HomePage', () => {
-  it('renders the pages table with data', async () => {
-    const mockData = [
-      { id: '1', slug: 'page-one', title: 'Page One', created_at: new Date().toISOString() },
-      { id: '2', slug: 'page-two', title: 'Page Two', created_at: new Date().toISOString() },
-    ];
+  const mockSummary = {
+    week: { week: 1, stage: '기초', dish: '김치찌개', skill: '끓이기', difficulty: 1, time: '30분', color: '#3498db' },
+    nextWeek: { week: 2, stage: '기초', dish: '된장찌개', skill: '볶기', difficulty: 1, time: '30분', color: '#3498db' },
+    recipes: [
+      { id: 'recipe-1', title: 'My test recipe', created_at: new Date().toISOString(), rating: '대박' },
+    ],
+    completed: false,
+  };
 
-    mockSupabase.mockReturnValue({
-      from: () => ({
-        select: () => ({
-          order: () => Promise.resolve({ data: mockData, error: null }),
-        }),
-      }),
-    });
-
-    // As HomePage is a Server Component, we need to await its rendering
-    const resolvedComponent = await HomePage();
-    render(resolvedComponent);
-
-    expect(screen.getByText('Page One')).toBeInTheDocument();
-    expect(screen.getByText('page-one')).toBeInTheDocument();
-    expect(screen.getByText('Page Two')).toBeInTheDocument();
-    expect(screen.getByText('page-two')).toBeInTheDocument();
+  beforeEach(() => {
+    mockFetch.mockClear();
+    mockCreateSupabaseBrowserClient.mockClear();
   });
 
-  it('renders a message when there is no data', async () => {
-    mockSupabase.mockReturnValue({
-      from: () => ({
-        select: () => ({
-          order: () => Promise.resolve({ data: [], error: null }),
-        }),
-      }),
+  it('renders loading state initially', async () => {
+    mockCreateSupabaseBrowserClient.mockReturnValue({
+      auth: {
+        getSession: jest.fn().mockResolvedValue({ data: { session: { access_token: 'test-token' } } }),
+        onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+      },
     });
-
-    const resolvedComponent = await HomePage();
-    render(resolvedComponent);
-
-    expect(screen.getByText(/No content yet/)).toBeInTheDocument();
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => new Promise(() => {}) }); // Never resolves
+    render(<HomePage />);
+    // The loading spinner should appear while fetching data
+    const spinner = await screen.findByRole('status');
+    expect(spinner).toBeInTheDocument();
   });
 
-  it('renders an error message on failure', async () => {
-    mockSupabase.mockReturnValue({
-      from: () => ({
-        select: () => ({
-          order: () => Promise.resolve({ data: null, error: { message: 'Test error' } }),
-        }),
-      }),
+  it('renders the plan summary when logged in', async () => {
+    mockCreateSupabaseBrowserClient.mockReturnValue({
+      auth: {
+        getSession: jest.fn().mockResolvedValue({ data: { session: { access_token: 'test-token' } } }),
+        onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+      },
+    });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockSummary) });
+    render(<HomePage />);
+
+    await waitFor(() => {
+        expect(screen.getByText('김치찌개')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('된장찌개')).toBeInTheDocument();
+    expect(screen.getByText('나의 레시피')).toBeInTheDocument();
+    expect(screen.getByText('My test recipe')).toBeInTheDocument();
+  });
+
+  it('renders the login form when not logged in', async () => {
+    mockCreateSupabaseBrowserClient.mockReturnValue({
+        auth: {
+            getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+            onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+        },
     });
 
-    const resolvedComponent = await HomePage();
-    render(resolvedComponent);
+    render(<HomePage />);
 
-    expect(screen.getByText(/Failed to load pages: Test error/)).toBeInTheDocument();
+    await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Sign In' })).toBeInTheDocument();
+    });
+    
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
   });
 });
