@@ -19,9 +19,9 @@ const ratingColors: { [key: string]: string } = {
 };
 
 const ratingIcons: { [key: string]: string } = {
-  '대박': 'bi-hand-thumbs-up-fill',
-  '먹을만': 'bi-emoji-neutral-fill',
-  '망했음': 'bi-hand-thumbs-down-fill',
+  '대박': 'bi-emoji-heart-eyes-fill',
+  '먹을만': 'bi-emoji-smile-fill',
+  '망했음': 'bi-emoji-dizzy-fill',
 };
 
 export default function PlanPage() {
