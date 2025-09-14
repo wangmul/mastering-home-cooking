@@ -30,7 +30,7 @@ export default function AllRecipesPage() {
         if (data.recipes) {
           setRecipes(data.recipes);
           setFilteredRecipes(data.recipes);
-          const uniqueWeeks: number[] = [...new Set(data.recipes.map((r: Recipe) => r.week))].sort((a: number, b: number) => a - b);
+          const uniqueWeeks: number[] = [...new Set(data.recipes.map((r: Recipe) => r.week) as number[])].sort((a: number, b: number) => a - b);
           setWeeks(uniqueWeeks);
         }
       })
