@@ -1,3 +1,4 @@
+<img width="824" height="892" alt="스크린샷 2025-09-14 오후 1 38 30" src="https://github.com/user-attachments/assets/cdb869e6-cb34-4e71-ab1d-4cdd0fcc5039" />
 # Mastering Home Cooking — Vercel + Supabase
 
 This project provides a minimal Next.js app that stores page content in Supabase and deploys cleanly on Vercel. It also includes a Supabase-backed 52-week cooking roadmap at `/plan` with filters and per-user progress.
