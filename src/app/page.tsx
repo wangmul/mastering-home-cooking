@@ -275,6 +275,7 @@ export default function HomePage() {
                     const fd = new FormData(form);
                     const payload = {
                       title: (fd.get('recipe') as string) || '',
+                      created_at: (fd.get('created_at') as string) ? new Date(fd.get('created_at') as string).toISOString() : new Date().toISOString(),
                       photo_url: (fd.get('photo_url') as string) || null,
                       rating: (fd.get('rating') as string) || null,
                     };
@@ -300,6 +301,10 @@ export default function HomePage() {
                     <div className="mb-3">
                       <label htmlFor="recipe" className="form-label">레시피</label>
                       <textarea id="recipe" name="recipe" className="form-control" rows={5} placeholder="나만의 레시피를 자유롭게 기록하세요."></textarea>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="created_at" className="form-label">작성일</label>
+                      <input type="date" id="created_at" name="created_at" className="form-control" defaultValue={new Date().toISOString().substring(0, 10)} />
                     </div>
                     <div className="mb-3">
                       <label htmlFor="photo_url" className="form-label">사진 URL</label>

@@ -26,12 +26,16 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { title, notes, photo_url, week: w, rating } = body as { title?: string; notes?: string; photo_url?: string; week?: number; rating?: string };
+  const { title, notes, photo_url, week: w, rating, created_at } = body as { title?: string; notes?: string; photo_url?: string; week?: number; rating?: string, created_at?: string };
   if (!title) return NextResponse.json({ error: 'Missing title' }, { status: 400 });
   const week = w ?? getPlanWeek();
 
   const supabase = createSupabaseServerClient('service');
-  const { error } = await supabase.from('recipes').insert({ user_id: user.id, week, title, notes: notes || null, photo_url: photo_url ?? null, rating: rating || null });
+  const recipeData: any = { user_id: user.id, week, title, notes: notes || null, photo_url: photo_url ?? null, rating: rating || null };
+  if (created_at) {
+    recipeData.created_at = created_at;
+  }
+  const { error } = await supabase.from('recipes').insert(recipeData);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
